@@ -27,11 +27,13 @@ exports.login = (req, res) => {
     }
 
     // Check database user
-    const sql = "SELECT * FROM investors WHERE email = ? AND password = ?";
+    const sql = "SELECT * FROM investor WHERE email = ? AND password = ?";
+
+    console.log("Login query:", sql, [email, password]);
 
     db.get(sql, [email, password], (err, user) => {
         if (err) {
-            console.error("Database Error during login:", err.message);
+            console.error("Database Error during login:", err.message, { query: sql, params: [email, password] });
 
             return res.status(500).json({
                 error: "Database error",
@@ -106,12 +108,14 @@ exports.getAllInvestors = (req, res) => {
       last_name,
       email,
       adhaar_no
-    FROM investors
+    FROM investor
   `;
+
+  console.log("Fetching all investors with query:", sql);
 
   db.all(sql, [], (err, rows) => {
     if (err) {
-      console.error("Database Error:", err);
+      console.error("Database Error fetching all investors:", err.message, { query: sql });
 
       return res.status(500).json({
         error: err.message,
@@ -143,13 +147,16 @@ exports.getDetails = (req, res) => {
         return res.status(401).send("Invalid token.");
     }
 
-    const sql = "SELECT investor_id, first_name, middle_name, last_name, email, adhaar_no FROM investors";
+    const sql = "SELECT investor_id, first_name, middle_name, last_name, email, adhaar_no FROM investor";
+
+    console.log("Fetching investor details for authenticated request:", sql);
 
     db.all(sql, [], (err, rows) => {
         if (err) {
             console.error(
                 "Database Error fetching all investor details:",
-                err.message
+                err.message,
+                { query: sql }
             );
             console.log(err);
 
@@ -211,7 +218,7 @@ exports.createInvestor = (req, res) => {
     } = req.body;
 
     const sql = `
-        INSERT INTO investors (
+        INSERT INTO investor (
             investor_id,
             first_name,
             middle_name,
@@ -277,11 +284,13 @@ exports.getInvestorById = (req, res) => {
   console.log("Requested Investor ID:", investor_id);
 
   const sql =
-    "SELECT * FROM investors WHERE investor_id = ?";
+    "SELECT * FROM investor WHERE investor_id = ?";
+
+  console.log("Fetching investor by ID query:", sql, [investor_id]);
 
   db.get(sql, [investor_id], (err, row) => {
     if (err) {
-      console.error("Database Error:", err);
+      console.error("Database Error fetching investor by ID:", err.message, { query: sql, params: [investor_id] });
 
       return res.status(500).json({
         error: err.message,
